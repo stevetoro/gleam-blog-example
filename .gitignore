@@ -1,0 +1,7 @@
+*.beam
+*.ez
+/build
+erl_crash.dump
+
+# Generated JSON file containing post metadata.
+metadata-generated.json
