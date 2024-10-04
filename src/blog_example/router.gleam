@@ -1,22 +1,21 @@
 import blog_example/content
-import blog_example/content/metadata
-import blog_example/web/pages/home
-import blog_example/web/pages/post
-import blog_example/web/pages/writing
+import blog_example/context.{type Context}
 import gleam/http.{Get}
+import gleam/list
 import wisp.{type Request, type Response}
 
-pub fn handle(req: Request) -> Response {
-  use req <- middleware(req)
+pub fn handle(ctx: Context, req: Request) -> Response {
+  use req <- middleware(ctx, req)
   case wisp.path_segments(req) {
-    [] -> home(req)
-    ["writing"] -> writing(req)
-    ["writing", slug] -> post(req, slug)
+    [] -> home(ctx, req)
+    ["writing"] -> writing(ctx, req)
+    ["writing", slug] -> post(ctx, req, slug)
     _ -> wisp.redirect("/")
   }
 }
 
 fn middleware(
+  ctx: Context,
   req: wisp.Request,
   handle_request: fn(wisp.Request) -> wisp.Response,
 ) -> wisp.Response {
@@ -24,40 +23,41 @@ fn middleware(
   use <- wisp.log_request(req)
   use <- wisp.rescue_crashes
   use req <- wisp.handle_head(req)
+  use <- wisp.serve_static(req, under: "/", from: ctx.static_directory)
   handle_request(req)
 }
 
-fn home(req: Request) {
+fn home(ctx: Context, req: Request) {
   use <- wisp.require_method(req, Get)
 
-  let metadata = case metadata.get_valid_metadata() {
-    Error(_) -> []
-    Ok(metadata) -> metadata
-  }
-
-  home.page(metadata)
-  |> wisp.html_response(200)
+  wisp.response(200)
+  |> wisp.set_body(wisp.File(ctx.static_directory <> "/index.html"))
 }
 
-fn writing(req: Request) {
+fn writing(ctx: Context, req: Request) {
   use <- wisp.require_method(req, Get)
 
-  let metadata = case metadata.get_valid_metadata() {
-    Error(_) -> []
-    Ok(metadata) -> metadata
-  }
-
-  writing.page(metadata)
-  |> wisp.html_response(200)
+  wisp.response(200)
+  |> wisp.set_body(wisp.File(ctx.static_directory <> "/writing.html"))
 }
 
-fn post(req: Request, slug: String) {
+fn post(ctx: Context, req: Request, slug: String) {
   use <- wisp.require_method(req, Get)
 
-  case content.fetch(for: slug) {
-    Error(_) -> wisp.redirect("/")
-    Ok(post) ->
-      post.page(post)
-      |> wisp.html_response(200)
+  let content = case content.fetch_all() {
+    Error(_) -> []
+    Ok(posts) -> posts
+  }
+
+  let found = content |> list.any(fn(post) { post.id == slug })
+
+  case found {
+    // TODO: Add 404 page.
+    False -> wisp.redirect("/")
+    True ->
+      wisp.response(200)
+      |> wisp.set_body(wisp.File(
+        ctx.static_directory <> "/writing/" <> slug <> ".html",
+      ))
   }
 }

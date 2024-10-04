@@ -20,7 +20,6 @@ pub fn layout(content: Element(t)) {
       ]),
     ]),
   ])
-  |> element.to_string_builder
 }
 
 fn footer_links() {

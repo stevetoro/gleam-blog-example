@@ -1,12 +1,18 @@
 import blog_example/content/metadata
+import gleam/list
 import gleam/result
-import jot
-import jot_to_lustre
+import lustre/ssg/djot
 import simplifile
 
-pub type Error {
-  GetMetadataError
-  ReadFileError
+pub type Post {
+  Post(
+    id: String,
+    title: String,
+    description: String,
+    author: String,
+    date: String,
+    content: String,
+  )
 }
 
 pub fn fetch(for slug: String) {
@@ -21,7 +27,34 @@ pub fn fetch(for slug: String) {
 
   Ok(
     post
-    |> jot.parse
-    |> jot_to_lustre.document_to_lustre,
+    |> djot.render(djot.default_renderer()),
   )
+}
+
+pub fn fetch_all() {
+  use metadata <- result.try(
+    metadata.get_valid_metadata()
+    |> result.replace_error(GetMetadataError),
+  )
+
+  metadata
+  |> list.map(fn(metadata) {
+    use post <- result.try(
+      simplifile.read(metadata.location) |> result.replace_error(ReadFileError),
+    )
+    Ok(Post(
+      id: metadata.slug,
+      title: metadata.title,
+      description: metadata.description,
+      author: metadata.author,
+      date: metadata.date,
+      content: post,
+    ))
+  })
+  |> result.all
+}
+
+pub type Error {
+  GetMetadataError
+  ReadFileError
 }

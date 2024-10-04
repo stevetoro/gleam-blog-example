@@ -1,12 +1,12 @@
 import birl
-import blog_example/content/metadata.{type Metadata}
+import blog_example/content.{type Post}
 import blog_example/web/layouts/base
 import gleam/list
 import lustre/attribute.{href}
 import lustre/element.{text}
 import lustre/element/html.{a, h1, h2, hgroup, html, li, p, section, ul}
 
-pub fn page(posts: List(Metadata)) {
+pub fn page(posts: List(Post)) {
   html([], [
     hgroup([], [
       h1([], [a([href("/")], [text("Writing page")])]),
@@ -17,7 +17,7 @@ pub fn page(posts: List(Metadata)) {
   |> base.layout
 }
 
-fn writings_section(posts: List(Metadata)) {
+fn writings_section(posts: List(Post)) {
   case posts |> list.is_empty {
     True -> element.none()
     False ->
@@ -25,14 +25,14 @@ fn writings_section(posts: List(Metadata)) {
   }
 }
 
-fn post_element(post: Metadata) {
+fn post_element(post: Post) {
   let formatted_date = case birl.parse(post.date) {
     Error(_) -> post.date
     Ok(parsed) -> birl.to_naive_date_string(parsed)
   }
 
   li([], [
-    h2([], [a([href("/writing/" <> post.slug)], [text(post.title)])]),
+    h2([], [a([href("/writing/" <> post.id)], [text(post.title)])]),
     p([], [text(post.description)]),
     p([], [text("Written by " <> post.author <> " on " <> formatted_date)]),
   ])

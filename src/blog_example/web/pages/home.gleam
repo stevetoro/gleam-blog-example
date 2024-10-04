@@ -1,12 +1,12 @@
 import birl
-import blog_example/content/metadata.{type Metadata}
+import blog_example/content.{type Post}
 import blog_example/web/layouts/base
 import gleam/list
 import lustre/attribute.{href}
 import lustre/element.{text}
 import lustre/element/html.{a, h1, h2, h3, hgroup, html, li, p, section, ul}
 
-pub fn page(posts: List(Metadata)) {
+pub fn page(recent_posts: List(Post)) {
   html([], [
     hgroup([], [
       h1([], [text("Home page")]),
@@ -20,12 +20,12 @@ pub fn page(posts: List(Metadata)) {
       h2([], [text("Section")]),
       p([], [text("A section with whatever static content you want.")]),
     ]),
-    writing_section(posts),
+    writing_section(recent_posts),
   ])
   |> base.layout
 }
 
-fn writing_section(posts: List(Metadata)) {
+fn writing_section(posts: List(Post)) {
   case posts |> list.is_empty {
     True -> element.none()
     False ->
@@ -37,14 +37,14 @@ fn writing_section(posts: List(Metadata)) {
   }
 }
 
-fn post_element(post: Metadata) {
+fn post_element(post: Post) {
   let formatted_date = case birl.parse(post.date) {
     Error(_) -> post.date
     Ok(parsed) -> birl.to_naive_date_string(parsed)
   }
 
   li([], [
-    h3([], [a([href("/writing/" <> post.slug)], [text(post.title)])]),
+    h3([], [a([href("/writing/" <> post.id)], [text(post.title)])]),
     p([], [text("written on " <> formatted_date)]),
   ])
 }

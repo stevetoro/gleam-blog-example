@@ -1,3 +1,4 @@
+import birl
 import decode
 import gleam/dict
 import gleam/json
@@ -62,7 +63,12 @@ pub fn get_valid_metadata() {
       let assert Ok(metadata) = dict.get(posts, key)
       metadata
     })
-    |> list.filter(fn(metadata) { metadata |> validate }),
+    |> list.filter(fn(metadata) { metadata |> validate })
+    |> list.sort(fn(m1, m2) {
+      let assert Ok(d1) = m1.date |> birl.parse()
+      let assert Ok(d2) = m2.date |> birl.parse()
+      birl.compare(d2, d1)
+    }),
   )
 }
 
