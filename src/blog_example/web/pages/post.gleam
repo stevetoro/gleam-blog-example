@@ -1,4 +1,4 @@
-import blog_example/content.{type Post}
+import blog_example/posts.{type Post}
 import blog_example/web/layouts/base
 import lustre/attribute.{href}
 import lustre/element.{text}

@@ -35,7 +35,5 @@ fn footer_links() {
 }
 
 fn copyright() {
-  html([], [
-    p([], [text("Copyright © 2024, Lorem Ipsum. All rights reserved.")]),
-  ])
+  html([], [p([], [text("Copyright © 2024, My Name. All rights reserved.")])])
 }

@@ -1,5 +1,5 @@
 import birl
-import blog_example/content.{type Post}
+import blog_example/posts.{type Post}
 import blog_example/web/layouts/base
 import gleam/list
 import lustre/attribute.{href}
@@ -44,7 +44,7 @@ fn post_element(post: Post) {
   }
 
   li([], [
-    h3([], [a([href("/writing/" <> post.id)], [text(post.title)])]),
+    h3([], [a([href("/writing/" <> post.slug)], [text(post.title)])]),
     p([], [text("written on " <> formatted_date)]),
   ])
 }

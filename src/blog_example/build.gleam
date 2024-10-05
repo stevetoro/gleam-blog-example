@@ -1,4 +1,4 @@
-import blog_example/content
+import blog_example/posts
 import blog_example/web/pages/home
 import blog_example/web/pages/post
 import blog_example/web/pages/writing
@@ -8,16 +8,16 @@ import gleam/list
 import lustre/ssg
 
 pub fn main() {
-  let posts = case content.fetch_all() {
+  let posts = case posts.fetch() {
     Error(_) -> []
     Ok(posts) -> posts
   }
 
+  let recent_posts = posts |> list.take(3)
+
   let posts_dict =
     posts
-    |> list.fold(dict.new(), fn(d, p) { d |> dict.insert(p.id, p) })
-
-  let recent_posts = posts |> list.take(3)
+    |> list.fold(dict.new(), fn(d, p) { d |> dict.insert(p.slug, p) })
 
   let build =
     ssg.new("./priv/static")

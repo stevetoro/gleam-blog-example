@@ -1,4 +1,3 @@
-import blog_example/content
 import blog_example/context.{type Context}
 import gleam/http.{Get}
 import gleam/list
@@ -19,41 +18,28 @@ fn middleware(
   req: wisp.Request,
   handle_request: fn(wisp.Request) -> wisp.Response,
 ) -> wisp.Response {
-  let req = wisp.method_override(req)
+  use <- wisp.require_method(req, Get)
   use <- wisp.log_request(req)
   use <- wisp.rescue_crashes
-  use req <- wisp.handle_head(req)
   use <- wisp.serve_static(req, under: "/", from: ctx.static_directory)
   handle_request(req)
 }
 
-fn home(ctx: Context, req: Request) {
-  use <- wisp.require_method(req, Get)
-
+fn home(ctx: Context, _req: Request) {
   wisp.response(200)
   |> wisp.set_body(wisp.File(ctx.static_directory <> "/index.html"))
 }
 
-fn writing(ctx: Context, req: Request) {
-  use <- wisp.require_method(req, Get)
-
+fn writing(ctx: Context, _req: Request) {
   wisp.response(200)
   |> wisp.set_body(wisp.File(ctx.static_directory <> "/writing.html"))
 }
 
-fn post(ctx: Context, req: Request, slug: String) {
-  use <- wisp.require_method(req, Get)
+fn post(ctx: Context, _req: Request, slug: String) {
+  let valid_slug = ctx.available_slugs |> list.contains(slug)
 
-  let content = case content.fetch_all() {
-    Error(_) -> []
-    Ok(posts) -> posts
-  }
-
-  let found = content |> list.any(fn(post) { post.id == slug })
-
-  case found {
-    // TODO: Add 404 page.
-    False -> wisp.redirect("/")
+  case valid_slug {
+    False -> wisp.redirect("/writing")
     True ->
       wisp.response(200)
       |> wisp.set_body(wisp.File(
